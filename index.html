@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Form Penyerahan Dokumen Pensiun</title>
+
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap");
+
+      body {
+        font-family: "Poppins", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Menjaga konten rata tengah secara horizontal */
+        min-height: 100vh;
+        margin: 0;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 20px;
+        box-sizing: border-box;
+        color: #34495e;
+        padding-top: 80px; /* Offset for fixed navbar */
+      }
+
+      .navbar {
+        width: 100%;
+        background-color: #007bff;
+        padding: 10px 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+      }
+
+      .navbar-brand {
+        color: #fff !important;
+        font-weight: 700;
+        font-size: 1.5rem;
+      }
+
+      .navbar-nav .nav-link {
+        color: #fff !important;
+        font-weight: 500;
+        margin-left: 15px;
+        transition: color 0.3s ease;
+      }
+
+      .navbar-nav .nav-link:hover {
+        color: #e2e6ea !important;
+      }
+
+      .header-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 2.5rem;
+        text-align: center;
+        width: 100%; /* Pastikan header mengambil lebar penuh */
+      }
+
+      .header-content img {
+        height: 120px;
+        width: auto;
+        margin-bottom: 1rem;
+        border-radius: 50%;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease;
+      }
+
+      .header-content img:hover {
+        transform: scale(1.05);
+      }
+
+      .header-content h2 {
+        color: #2c3e50;
+        font-size: 2.5rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+        margin-bottom: 0;
+      }
+
+      form {
+        background-color: #ffffff;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        animation: fadeIn 0.8s ease-out;
+        margin-left: auto; /* Untuk rata tengah */
+        margin-right: auto; /* Untuk rata tengah */
+        margin-bottom: 20px; /* Tambahkan sedikit margin bawah */
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+        color: #34495e;
+        font-size: 1rem;
+      }
+
+      .required {
+        color: #e74c3c;
+        margin-left: 5px;
+      }
+
+      input[type="number"],
+      input[type="text"],
+      input[type="date"],
+      select {
+        padding: 0.85rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #dcdfe6;
+        background-color: #fcfdff;
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 0.95rem;
+        color: #34495e;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      input[type="number"]:focus,
+      input[type="text"]:focus,
+      input[type="date"]:focus,
+      select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+      }
+
+      input[type="submit"] {
+        padding: 0.9rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        background-color: #28a745; /* Success green */
+        color: #fff;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        margin-top: 1.5rem;
+        box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+      }
+
+      input[type="submit"]:hover {
+        background-color: #218838;
+        transform: translateY(-2px);
+      }
+
+      input[type="submit"]:active {
+        transform: translateY(0);
+      }
+
+      .form-field {
+        margin-bottom: 1.2rem;
+      }
+
+      .form-field > div {
+        /* For checkbox group */
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-field div label {
+        font-weight: 400;
+        margin-bottom: 0;
+        margin-left: 0.6rem;
+        color: #555;
+        font-size: 0.95rem;
+      }
+
+      .form-field input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin-right: 0; /* Adjusted for better alignment with label */
+        accent-color: #007bff; /* Style checkbox directly */
+      }
+
+      .signature-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        background-color: #f9f9f9;
+        padding: 1.2rem;
+        border-radius: 10px;
+        border: 1px dashed #ced4da;
+      }
+
+      .signature-pad {
+        border: 1px solid #b0b8c2;
+        border-radius: 8px;
+        background-color: #fff;
+        touch-action: none;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+        width: 100%; /* Make canvas responsive */
+        max-width: 300px; /* Limit max width */
+        height: 150px; /* Fixed height for consistency */
+      }
+
+      #clear-button,
+      #clear-button-2 {
+        background-color: #dc3545;
+        color: #fff;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        margin-top: 1rem;
+        font-weight: 500;
+        border: none;
+      }
+
+      #clear-button:hover,
+      #clear-button-2:hover {
+        background-color: #c82333;
+        transform: translateY(-1px);
+      }
+
+      /* SweetAlert2 custom styling */
+      .swal2-popup {
+        font-family: "Poppins", sans-serif;
+        border-radius: 10px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      .swal2-title {
+        color: #2c3e50;
+        font-weight: 600;
+      }
+
+      .swal2-content {
+        color: #555;
+      }
+
+      .swal2-confirm.swal2-styled {
+        background-color: #007bff !important;
+        border-radius: 5px;
+        font-weight: 500;
+      }
+
+      .swal2-confirm.swal2-styled:focus {
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.4);
+      }
+
+      .swal2-validation-message {
+        color: #e74c3c !important;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .header-content h2 {
+          font-size: 2rem;
+        }
+
+        form {
+          padding: 1.5rem;
+          gap: 1rem;
+        }
+
+        label {
+          font-size: 0.9rem;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        input[type="date"],
+        select,
+        input[type="submit"] {
+          padding: 0.7rem 1rem;
+          font-size: 0.85rem;
+        }
+
+        .signature-container {
+          padding: 1rem;
+        }
+      }
+
+      @media (max-width: 576px) {
+        body {
+          padding: 10px;
+          padding-top: 70px; /* Adjusted for smaller navbar on mobile */
+        }
+
+        .header-content img {
+          height: 90px;
+        }
+
+        .header-content h2 {
+          font-size: 1.75rem;
+        }
+
+        form {
+          padding: 1rem;
+        }
+
+        .form-field > div {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .form-field div label {
+          margin-left: 0;
+          margin-top: 5px;
+        }
+
+        .signature-pad {
+          max-width: 100%; /* Allow canvas to fill container on smaller screens */
+          height: 120px; /* Slightly reduce height for very small screens */
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-content">
+      <img src="logo.png" alt="Logo Dapen-ST" style="max-width: 120px" />
+
+      <h2>Form Penyerahan Dokumen Pensiun</h2>
+      <a href="index.html" class="btn btn-outline-primary mt-3 mb-4"
+        >&larr; Kembali ke Home</a
+      >
+    </div>
+    <form id="myForm">
+      <input type="hidden" name="api_key" value="mysecretkey123" />
+
+      <div class="form-field">
+        <label for="sap"><b>Nomor Induk Pensiun</b><span class="required">*</span></label>
+        <input
+          type="number"
+          id="sap"
+          name="sap"
+          placeholder="Masukkan Nomor Induk Pensiun"
+          required
+        />
+      </div>
+      <div class="form-field">
+        <label for="name"
+          ><b>Nama Karyawan</b><span class="required">*</span></label
+        >
+        <input
+          type="text"
+          id="name"
+          name="name"
+          placeholder="Masukkan Nama Karyawan"
+          required
+        />
+      </div>
+      <div class="form-field">
+        <label for="npm"><b>Nama Penerima Manfaat Pensiun Saat Ini</b><span class="required">*</span></label>
+        <input
+          type="text"
+          id="npm"
+          name="npm"
+          placeholder="Masukkan Nama Penerima Manfaat"
+          required
+        />
+      </div>
+      <div class="form-field">
+        <label for="ktp"><b>No KTP</b><span class="required">*</span></label>
+        <input
+          type="text"
+          id="ktp"
+          name="ktp"
+          placeholder="Masukkan Nama Penerima Manfaat"
+          required
+        />
+      </div>
+      <div class="form-field">
+        <label for="date_submit"
+          ><b>Tanggal Penyerahan</b><span class="required">*</span></label
+        >
+        <input
+          type="date"
+          id="date_submit"
+          name="date_submit"
+          placeholder="Masukkan Tanggal Penyerahan"
+          required
+        />
+      </div>
+      <div class="signature-container">
+        <label for="signature-pad"
+          ><b>Peserta</b><span class="required">*</span></label
+        >
+        <canvas
+          id="signature-pad"
+          class="signature-pad"
+          width="300"
+          height="150"
+        ></canvas>
+        <button type="button" id="clear-button" class="btn btn-danger">
+          Clear
+        </button>
+        <input type="hidden" id="signature" name="signature" />
+      </div>
+      <div class="signature-container">
+        <label for="signature-pad-2"><b>Penerima Dokumen</b></label>
+        <canvas
+          id="signature-pad-2"
+          class="signature-pad"
+          width="300"
+          height="150"
+        ></canvas>
+        <button type="button" id="clear-button-2" class="btn btn-danger">
+          Clear
+        </button>
+        <input type="hidden" id="signature-2" name="signature_2" />
+      </div>
+      <input type="submit" value="Submit" />
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+    <script src="config.js"></script>
+
+    <script>
+      const GOOGLE_APPS_SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbwxMxVPJ39_AzGtkfNgMYM9iVdZtY7TcO3qm3sk5jh5VmEuSkex2wXvyG-3k8wD2sSntg/exec";
+
+      const form = document.getElementById("myForm");
+      const signaturePad = new SignaturePad(
+        document.getElementById("signature-pad")
+      );
+      const clearButton = document.getElementById("clear-button");
+      const signatureInput = document.getElementById("signature");
+
+      const signaturePadTwo = new SignaturePad(
+        document.getElementById("signature-pad-2")
+      );
+      const clearButtonTwo = document.getElementById("clear-button-2");
+      const signatureInputTwo = document.getElementById("signature-2");
+
+      // Resize signature pads on window resize
+      function resizeSignaturePads() {
+        const canvas1 = document.getElementById("signature-pad");
+        const canvas2 = document.getElementById("signature-pad-2");
+
+        // Get the computed style of the parent container for width
+        const parentWidth1 = canvas1.parentElement.offsetWidth;
+        const parentWidth2 = canvas2.parentElement.offsetWidth;
+
+        // Set canvas width to parent's width, respecting max-width from CSS
+        canvas1.width = Math.min(parentWidth1, 300);
+        canvas2.width = Math.min(parentWidth2, 300);
+
+        // Redraw signatures if they exist
+        if (!signaturePad.isEmpty()) {
+          const dataUrl = signaturePad.toDataURL();
+          signaturePad.clear();
+          signaturePad.fromDataURL(dataUrl);
+        }
+        if (!signaturePadTwo.isEmpty()) {
+          const dataUrl = signaturePadTwo.toDataURL();
+          signaturePadTwo.clear();
+          signaturePadTwo.fromDataURL(dataUrl);
+        }
+      }
+
+      // Initial resize and on window resize
+      window.addEventListener("resize", resizeSignaturePads);
+      resizeSignaturePads(); // Call once on load
+
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        signatureInput.value = signaturePad.toDataURL();
+        signatureInputTwo.value = signaturePadTwo.toDataURL();
+
+        // Check if participant signature is empty
+        if (signaturePad.isEmpty()) {
+          Swal.fire({
+            title: "Peringatan!",
+            text: "Tanda tangan Peserta belum diisi.",
+            icon: "warning",
+            confirmButtonText: "OK",
+          });
+          return; // Stop form submission
+        }
+
+        // Display SweetAlert2 loading
+        Swal.fire({
+          title: "Memproses...",
+          text: "Mohon tunggu sebentar.",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
+        // Ambil data dari form
+        const formData = new FormData(form);
+        const data = {};
+
+        // Convert FormData to object
+        for (let [key, value] of formData.entries()) {
+          if (key === "dokumen") {
+            if (!data[key]) {
+              data[key] = [];
+            }
+            data[key].push(value);
+          } else {
+            data[key] = value;
+          }
+        }
+
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+          redirect: "follow",
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => {
+            console.log("Response status:", response.status);
+            console.log("Response headers:", response.headers);
+            return response.json();
+          })
+          .then((result) => {
+            console.log("Response result:", result);
+            Swal.close(); // Tutup SweetAlert2 loading
+
+            if (result.success) {
+              Swal.fire({
+                title: "Sukses!",
+                text: result.message || "Data berhasil disimpan!",
+                icon: "success",
+                confirmButtonText: "OK",
+              }).then(function () {
+                form.reset();
+                signaturePad.clear();
+                signaturePadTwo.clear();
+              });
+            } else {
+              Swal.fire({
+                title: "Error!",
+                text: result.error || "Terjadi kesalahan saat menyimpan data.",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            Swal.close(); // Tutup SweetAlert2 loading jika ada error
+            console.error("Fetch Error:", error);
+            Swal.fire({
+              title: "Error!",
+              text: "Terjadi kesalahan saat menyimpan data: " + error.message,
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+          });
+      });
+
+      clearButton.addEventListener("click", function () {
+        signaturePad.clear();
+        signatureInput.value = "";
+      });
+
+      clearButtonTwo.addEventListener("click", function () {
+        signaturePadTwo.clear();
+        signatureInputTwo.value = "";
+      });
+    </script>
+  </body>
+</html>
