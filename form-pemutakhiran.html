@@ -135,6 +135,7 @@
       input[type="number"],
       input[type="text"],
       input[type="date"],
+      input[type="file"],
       select {
         padding: 0.85rem 1rem;
         border-radius: 8px;
@@ -150,6 +151,7 @@
       input[type="number"]:focus,
       input[type="text"]:focus,
       input[type="date"]:focus,
+      input[type="file"]:focus,
       select:focus {
         border-color: #007bff;
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
@@ -349,7 +351,7 @@
         >&larr; Kembali ke Home</a
       >
     </div>
-    <form id="myForm">
+    <form id="myForm" enctype="multipart/form-data">
       <input type="hidden" name="api_key" value="mysecretkey123" />
 
       <div class="form-field">
@@ -672,10 +674,28 @@
           placeholder="Masukkan Tempat Penyerahan"
         />
       </div>
+      <div class="form-field">
+        <label for="dokumen"
+          ><b>Foto KTP</b><span class="required">*</span></label
+        >
+        <input
+          type="file"
+          id="fileInput"
+          name="dokumen"
+          accept="image/*"
+          onchange="previewImage(event)"
+        />
+
+        <p id="fileNameDisplay">No file selected</p>
+        <img
+          id="preview"
+          style="max-width: 200px; margin-top: 10px; display: none"
+        />
+      </div>
 
       <div class="signature-container">
         <label for="signature-pad"
-          ><b>Peserta</b><span class="required">*</span></label
+          ><b>Penerim Manfaat</b><span class="required">*</span></label
         >
         <canvas
           id="signature-pad"
@@ -697,10 +717,56 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
     <script src="config.js"></script>
-
+    
     <script>
+      function previewImage(event) {
+        const fileInput = event.target;
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        const preview = document.getElementById("preview");
+
+        if (fileInput.files && fileInput.files[0]) {
+          const file = fileInput.files[0];
+
+          // tampilkan nama file
+          fileNameDisplay.textContent = file.name;
+
+          // cek apakah benar file gambar
+          if (file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              preview.src = e.target.result;
+              preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+          } else {
+            fileNameDisplay.textContent = "File bukan gambar!";
+            preview.style.display = "none";
+          }
+        } else {
+          fileNameDisplay.textContent = "No file selected";
+          preview.style.display = "none";
+        }
+      }
+
+      // convert file ke base64
+      function uploadFile(file) {
+        return new Promise((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = (e) => {
+            const data = e.target.result.split(",");
+            resolve({
+              fileName: file.name,
+              mimeType: data[0].match(/:(\w.+);/)[1],
+              data: data[1],
+            });
+          };
+          fr.onerror = reject;
+          fr.readAsDataURL(file);
+        });
+      }
+
       const GOOGLE_APPS_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbwxMxVPJ39_AzGtkfNgMYM9iVdZtY7TcO3qm3sk5jh5VmEuSkex2wXvyG-3k8wD2sSntg/exec";
+        "https://script.google.com/macros/s/AKfycby55asMljna6nopbGN6LbM6ZAOO0Zgf5GHspWkjzrqCrZlXmfhoAX-YI1PclYCWRrXW/exec";
 
       const form = document.getElementById("myForm");
       const signaturePad = new SignaturePad(
@@ -709,35 +775,21 @@
       const clearButton = document.getElementById("clear-button");
       const signatureInput = document.getElementById("signature");
 
-      const signaturePadTwo = new SignaturePad(
-        document.getElementById("signature-pad-2")
-      );
-      const clearButtonTwo = document.getElementById("clear-button-2");
-      const signatureInputTwo = document.getElementById("signature-2");
-
       // Resize signature pads on window resize
       function resizeSignaturePads() {
         const canvas1 = document.getElementById("signature-pad");
-        const canvas2 = document.getElementById("signature-pad-2");
 
         // Get the computed style of the parent container for width
         const parentWidth1 = canvas1.parentElement.offsetWidth;
-        const parentWidth2 = canvas2.parentElement.offsetWidth;
 
         // Set canvas width to parent's width, respecting max-width from CSS
         canvas1.width = Math.min(parentWidth1, 300);
-        canvas2.width = Math.min(parentWidth2, 300);
 
         // Redraw signatures if they exist
         if (!signaturePad.isEmpty()) {
           const dataUrl = signaturePad.toDataURL();
           signaturePad.clear();
           signaturePad.fromDataURL(dataUrl);
-        }
-        if (!signaturePadTwo.isEmpty()) {
-          const dataUrl = signaturePadTwo.toDataURL();
-          signaturePadTwo.clear();
-          signaturePadTwo.fromDataURL(dataUrl);
         }
       }
 
@@ -748,7 +800,6 @@
       form.addEventListener("submit", async function (event) {
         event.preventDefault();
         signatureInput.value = signaturePad.toDataURL();
-        signatureInputTwo.value = signaturePadTwo.toDataURL();
 
         // Check if participant signature is empty
         if (signaturePad.isEmpty()) {
@@ -775,13 +826,14 @@
         const formData = new FormData(form);
         const data = {};
 
-        // Convert FormData to object
         for (let [key, value] of formData.entries()) {
           if (key === "dokumen") {
+            // Ubah file ke base64
+            const fileObj = await uploadFile(value);
             if (!data[key]) {
               data[key] = [];
             }
-            data[key].push(value);
+            data[key].push(fileObj);
           } else {
             data[key] = value;
           }
@@ -813,7 +865,6 @@
               }).then(function () {
                 form.reset();
                 signaturePad.clear();
-                signaturePadTwo.clear();
               });
             } else {
               Swal.fire({
@@ -839,11 +890,6 @@
       clearButton.addEventListener("click", function () {
         signaturePad.clear();
         signatureInput.value = "";
-      });
-
-      clearButtonTwo.addEventListener("click", function () {
-        signaturePadTwo.clear();
-        signatureInputTwo.value = "";
       });
     </script>
   </body>
