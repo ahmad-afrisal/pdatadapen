@@ -504,8 +504,7 @@
       </div>
       <div class="form-field">
         <label for="rekening"
-          ><b>Nomor Rekening </b> (tidak untuk mengubah rekening saat ini)<span
-            class="required"
+          ><b>Nomor Rekening </b> (Bukan Untuk Mengganti)<span class="required"
             >*</span
           ></label
         >
@@ -695,7 +694,7 @@
 
       <div class="signature-container">
         <label for="signature-pad"
-          ><b>Penerim Manfaat</b><span class="required">*</span></label
+          ><b>Penerima Manfaat</b><span class="required">*</span></label
         >
         <canvas
           id="signature-pad"
@@ -717,8 +716,19 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
     <script src="config.js"></script>
-    
+
     <script>
+      /* ============================================================
+     VALIDASI NAMA (tidak boleh mengandung !@#$%^&*() dll)
+  ============================================================ */
+      function isValidName(name) {
+        const regex = /^[A-Za-zÀ-ÿ' -]+$/;
+        return regex.test(name.trim());
+      }
+
+      /* ============================================================
+     PREVIEW GAMBAR
+  ============================================================ */
       function previewImage(event) {
         const fileInput = event.target;
         const fileNameDisplay = document.getElementById("fileNameDisplay");
@@ -726,11 +736,8 @@
 
         if (fileInput.files && fileInput.files[0]) {
           const file = fileInput.files[0];
-
-          // tampilkan nama file
           fileNameDisplay.textContent = file.name;
 
-          // cek apakah benar file gambar
           if (file.type.startsWith("image/")) {
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -748,7 +755,9 @@
         }
       }
 
-      // convert file ke base64
+      /* ============================================================
+     FILE KE BASE64
+  ============================================================ */
       function uploadFile(file) {
         return new Promise((resolve, reject) => {
           const fr = new FileReader();
@@ -765,9 +774,11 @@
         });
       }
 
+      /* ============================================================
+     SIGNATURE PAD
+  ============================================================ */
       const GOOGLE_APPS_SCRIPT_URL =
         "https://script.google.com/macros/s/AKfycby55asMljna6nopbGN6LbM6ZAOO0Zgf5GHspWkjzrqCrZlXmfhoAX-YI1PclYCWRrXW/exec";
-
       const form = document.getElementById("myForm");
       const signaturePad = new SignaturePad(
         document.getElementById("signature-pad")
@@ -775,17 +786,11 @@
       const clearButton = document.getElementById("clear-button");
       const signatureInput = document.getElementById("signature");
 
-      // Resize signature pads on window resize
       function resizeSignaturePads() {
         const canvas1 = document.getElementById("signature-pad");
-
-        // Get the computed style of the parent container for width
         const parentWidth1 = canvas1.parentElement.offsetWidth;
-
-        // Set canvas width to parent's width, respecting max-width from CSS
         canvas1.width = Math.min(parentWidth1, 300);
 
-        // Redraw signatures if they exist
         if (!signaturePad.isEmpty()) {
           const dataUrl = signaturePad.toDataURL();
           signaturePad.clear();
@@ -793,97 +798,179 @@
         }
       }
 
-      // Initial resize and on window resize
       window.addEventListener("resize", resizeSignaturePads);
-      resizeSignaturePads(); // Call once on load
+      resizeSignaturePads();
 
+      /* ============================================================
+     CONDITIONAL LOGIC: SPM → STATUS NIKAH
+  ============================================================ */
+      const spmSelect = document.getElementById("spm");
+      const statusNikahSelect = document.getElementById("status_nikah");
+
+      function updateStatusNikah() {
+        if (spmSelect.value === "Duda/Janda") {
+          statusNikahSelect.disabled = false;
+          statusNikahSelect.required = true;
+        } else {
+          statusNikahSelect.disabled = true;
+          statusNikahSelect.required = false;
+          statusNikahSelect.value = "";
+        }
+      }
+
+      updateStatusNikah();
+      spmSelect.addEventListener("change", updateStatusNikah);
+
+      /* ============================================================
+     HANDLE SUBMIT FORM
+  ============================================================ */
       form.addEventListener("submit", async function (event) {
         event.preventDefault();
+
         signatureInput.value = signaturePad.toDataURL();
 
-        // Check if participant signature is empty
+        // Validasi tanda tangan
         if (signaturePad.isEmpty()) {
-          Swal.fire({
-            title: "Peringatan!",
-            text: "Tanda tangan Peserta belum diisi.",
-            icon: "warning",
-            confirmButtonText: "OK",
-          });
-          return; // Stop form submission
+          Swal.fire(
+            "Peringatan!",
+            "Tanda tangan Peserta belum diisi.",
+            "warning"
+          );
+          return;
         }
 
-        // Display SweetAlert2 loading
+        /* ============================================================
+       VALIDASI NAMA WAJIB
+    ============================================================ */
+        const nameValue = document.getElementById("name").value;
+        const npmValue = document.getElementById("npm").value;
+        const ahli1Value = document.getElementById("ahli_waris_1_nama").value;
+        const ahli2Value = document.getElementById("ahli_waris_2_nama")?.value;
+
+        if (!isValidName(nameValue)) {
+          Swal.fire(
+            "Nama tidak valid!",
+            "Nama karyawan mengandung karakter ilegal.",
+            "error"
+          );
+          return;
+        }
+
+        if (!isValidName(npmValue)) {
+          Swal.fire(
+            "Nama tidak valid!",
+            "Nama penerima manfaat mengandung karakter ilegal.",
+            "error"
+          );
+          return;
+        }
+
+        if (ahli1Value && !isValidName(ahli1Value)) {
+          Swal.fire(
+            "Nama tidak valid!",
+            "Nama Ahli Waris 1 mengandung karakter ilegal.",
+            "error"
+          );
+          return;
+        }
+
+        if (ahli2Value && !isValidName(ahli2Value)) {
+          Swal.fire(
+            "Nama tidak valid!",
+            "Nama Ahli Waris 2 mengandung karakter ilegal.",
+            "error"
+          );
+          return;
+        }
+
+        /* ============================================================
+       VALIDASI STATUS NIKAH
+    ============================================================ */
+        if (spmSelect.value === "Duda/Janda" && !statusNikahSelect.value) {
+          Swal.fire("Peringatan!", "Status Nikah harus dipilih.", "warning");
+          return;
+        }
+
+        /* ============================================================
+       SHOW LOADING
+    ============================================================ */
         Swal.fire({
           title: "Memproses...",
           text: "Mohon tunggu sebentar.",
           allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
+          didOpen: () => Swal.showLoading(),
         });
 
-        // Ambil data dari form
+        /* ============================================================
+       KUMPULKAN DATA FORM
+    ============================================================ */
         const formData = new FormData(form);
         const data = {};
 
         for (let [key, value] of formData.entries()) {
           if (key === "dokumen") {
-            // Ubah file ke base64
             const fileObj = await uploadFile(value);
-            if (!data[key]) {
-              data[key] = [];
-            }
+            if (!data[key]) data[key] = [];
             data[key].push(fileObj);
           } else {
             data[key] = value;
           }
         }
 
-        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-          redirect: "follow",
+        /* ============================================================
+       KIRIM KE GOOGLE SCRIPT
+    ============================================================ */
+        fetch(GOOGLE_APPS_SCRIPT_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8",
-          },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(data),
         })
-          .then((response) => {
-            console.log("Response status:", response.status);
-            console.log("Response headers:", response.headers);
-            return response.json();
-          })
+          .then((res) => res.json())
           .then((result) => {
-            console.log("Response result:", result);
-            Swal.close(); // Tutup SweetAlert2 loading
+            Swal.close();
 
             if (result.success) {
               Swal.fire({
                 title: "Sukses!",
-                text: result.message || "Data berhasil disimpan!",
+                text: "Data berhasil disimpan! Anda akan dialihkan...",
                 icon: "success",
                 confirmButtonText: "OK",
-              }).then(function () {
-                form.reset();
-                signaturePad.clear();
+              }).then(() => {
+                // Buka halaman blank dahulu
+                document.body.innerHTML = `
+    <div style="font-family: Poppins, sans-serif; text-align:center; margin-top:50px;">
+      <h2>Terima kasih!</h2>
+      <p>Anda akan diarahkan dalam <span id="countdown">5</span> detik...</p>
+    </div>
+  `;
+
+                let counter = 5;
+                const interval = setInterval(() => {
+                  counter--;
+                  document.getElementById("countdown").textContent = counter;
+
+                  if (counter <= 0) {
+                    clearInterval(interval);
+                    window.location.href =
+                      "https://forms.gle/yAVTNEDhFphdRtds5";
+                  }
+                }, 1000);
               });
             } else {
-              Swal.fire({
-                title: "Error!",
-                text: result.error || "Terjadi kesalahan saat menyimpan data.",
-                icon: "error",
-                confirmButtonText: "OK",
-              });
+              Swal.fire(
+                "Error!",
+                result.error || "Terjadi kesalahan.",
+                "error"
+              );
             }
           })
           .catch((error) => {
-            Swal.close(); // Tutup SweetAlert2 loading jika ada error
-            console.error("Fetch Error:", error);
-            Swal.fire({
-              title: "Error!",
-              text: "Terjadi kesalahan saat menyimpan data: " + error.message,
-              icon: "error",
-              confirmButtonText: "OK",
-            });
+            Swal.close();
+            Swal.fire(
+              "Error!",
+              "Gagal mengirim data: " + error.message,
+              "error"
+            );
           });
       });
 
